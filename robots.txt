@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mtzfilms.com/sitemap.xml
