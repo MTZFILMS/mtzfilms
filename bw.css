@@ -129,3 +129,9 @@ body{font-weight:400;line-height:1.6}
 .intro-word{align-items:stretch}
 .intro-welcome{color:#bbb}
 .intro.has-logo .intro-word{width:min(680px,84vw)}
+
+/* touch screens: no sticky tap-hover — the photo in the middle of the screen turns to color while scrolling */
+@media (hover:none){
+  .film:hover img,.svc-tile:hover img,.gal-item:hover img,.about-visual:hover img{filter:grayscale(1) contrast(1.05)}
+  .film.in-color img,.svc-tile.in-color img,.gal-item.in-color img,.about-visual.in-color img{filter:none}
+}

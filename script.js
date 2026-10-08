@@ -134,7 +134,7 @@ function applyLang() {
   b.textContent = lang === "en" ? "ES" : "EN";
   b.setAttribute("aria-label", lang === "en" ? "Cambiar a español" : "Switch to English");
   renderFilms(); renderServices(); renderGallery(); renderReviews(); renderFormServices();
-  applyContact(); observeReveal();
+  applyContact(); observeReveal(); observeColor();
 }
 
 /* ---------- contact wiring ---------- */
@@ -195,6 +195,14 @@ function observeReveal() {
   if (!("IntersectionObserver" in window)) { $$(".reveal").forEach((el) => el.classList.add("in")); return; }
   io ||= new IntersectionObserver((ents) => ents.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }), { threshold: 0.12 });
   $$(".reveal:not(.in)").forEach((el) => io.observe(el));
+}
+
+/* ---------- touch screens: color the photo in the middle of the screen ---------- */
+let colorIO;
+function observeColor() {
+  if (!matchMedia("(hover: none)").matches || !("IntersectionObserver" in window)) return;
+  colorIO ||= new IntersectionObserver((ents) => ents.forEach((en) => en.target.classList.toggle("in-color", en.isIntersecting)), { rootMargin: "-35% 0px -35% 0px" });
+  $$(".film, .svc-tile, .gal-item, .about-visual").forEach((el) => colorIO.observe(el));
 }
 
 /* ---------- quote form ---------- */
