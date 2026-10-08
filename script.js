@@ -156,8 +156,20 @@ function applyContact() {
 
 /* ---------- lightbox (films + gallery) ---------- */
 const lb = $("#lightbox"), lbBody = $("#lbBody");
+let galIndex = -1; // >= 0 while browsing the gallery
+const ARROW = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
 function openLB(html) { lbBody.innerHTML = html; lb.hidden = false; document.body.classList.add("lb-on"); }
-function closeLB() { lb.hidden = true; lbBody.innerHTML = ""; document.body.classList.remove("lb-on"); }
+function closeLB() { lb.hidden = true; lbBody.innerHTML = ""; galIndex = -1; lb.classList.remove("lb-gallery"); document.body.classList.remove("lb-on"); }
+function showGallery(i) {
+  galIndex = (i + GALLERY.length) % GALLERY.length;
+  lb.classList.add("lb-gallery");
+  openLB(`<img src="${GALLERY[galIndex].src}" alt="MTZ Films">
+    <button class="lb-nav lb-prev" aria-label="${t("Anterior", "Previous")}">${ARROW("M15 5l-7 7 7 7")}</button>
+    <button class="lb-nav lb-next" aria-label="${t("Siguiente", "Next")}">${ARROW("M9 5l7 7-7 7")}</button>
+    <span class="lb-count">${galIndex + 1} / ${GALLERY.length}</span>`);
+  // preload neighbours so the next swipe is instant
+  [galIndex + 1, galIndex - 1].forEach((n) => { new Image().src = GALLERY[(n + GALLERY.length) % GALLERY.length].src; });
+}
 $("#filmGrid")?.addEventListener("click", (e) => {
   const b = e.target.closest(".film"); if (!b) return;
   const f = FILMS[b.dataset.i];
@@ -167,10 +179,27 @@ $("#filmGrid")?.addEventListener("click", (e) => {
 });
 $("#galGrid")?.addEventListener("click", (e) => {
   const it = e.target.closest(".gal-item"); if (!it) return;
-  openLB(`<img src="${GALLERY[it.dataset.i].src}" alt="MTZ Films">`);
+  showGallery(+it.dataset.i);
 });
-lb?.addEventListener("click", (e) => { if (e.target.closest(".lb-close") || e.target === lb) closeLB(); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lb && !lb.hidden) closeLB(); });
+lb?.addEventListener("click", (e) => {
+  if (e.target.closest(".lb-prev")) return showGallery(galIndex - 1);
+  if (e.target.closest(".lb-next")) return showGallery(galIndex + 1);
+  if (e.target.closest(".lb-close") || e.target === lb || e.target === lbBody) closeLB();
+});
+document.addEventListener("keydown", (e) => {
+  if (!lb || lb.hidden) return;
+  if (e.key === "Escape") closeLB();
+  else if (galIndex >= 0 && e.key === "ArrowRight") showGallery(galIndex + 1);
+  else if (galIndex >= 0 && e.key === "ArrowLeft") showGallery(galIndex - 1);
+});
+/* swipe left / right on phones */
+let touchX = null;
+lb?.addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+lb?.addEventListener("touchend", (e) => {
+  if (touchX === null || galIndex < 0) return;
+  const dx = e.changedTouches[0].clientX - touchX; touchX = null;
+  if (Math.abs(dx) > 50) showGallery(galIndex + (dx < 0 ? 1 : -1));
+});
 
 /* ---------- nav ---------- */
 const nav = $("#nav");
